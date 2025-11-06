@@ -1,16 +1,38 @@
-# React + Vite
+এই কোডটি React.js ব্যবহার করে একটি Tic-Tac-Toe গেম তৈরি করেছে। এটি তিনটি প্রধান কম্পোনেন্ট নিয়ে গঠিত: Square, Board এবং Game। এছাড়া, একটি হেল্পার ফাংশন calculateWinner রয়েছে যা বিজয়ী চেক করে। গেমটিতে মুভের হিস্টরি রাখা হয়েছে, যাতে প্লেয়াররা পুরনো মুভে ফিরে যেতে পারে। আমি ধাপে ধাপে কোডটি ব্যাখ্যা করব।
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### Square কম্পোনেন্ট:
 
-Currently, two official plugins are available:
+এটি গেমের প্রতিটি স্কোয়ার (বর্গাকার বক্স) প্রতিনিধিত্ব করে।
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- এটি একটি বাটন রেন্ডার করে, যার ভিতরে value (X বা O বা null) দেখানো হয়।
+- onSquareClick প্রপস দিয়ে ক্লিক হ্যান্ডেল করা হয়।
+- ক্লাসনেম দিয়ে স্টাইলিং করা হয়েছে, যেমন: bg-white (সাদা ব্যাকগ্রাউন্ড), border-gray-400 (ধূসর বর্ডার), h-20 w-20 (উচ্চতা ও প্রস্থ ২০ ইউনিট), m-3 (মার্জিন ৩), leading-10 (লাইন হাইট), text-lg (টেক্সট সাইজ)।
 
-## React Compiler
+### Board কম্পোনেন্ট:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+এটি ৩x৩ গ্রিডের বোর্ড তৈরি করে।
 
-## Expanding the ESLint configuration
+- প্রপস: xIsNext (পরবর্তী প্লেয়ার X কি না), square (বর্তমান স্কোয়ারের অ্যারে, ৯টি এলিমেন্ট), onPlay (মুভ হ্যান্ডেল করার ফাংশন)।
+- calculateWinner ফাংশন কল করে বিজয়ী চেক করে। যদি বিজয়ী থাকে, status-এ "Winner: X/O" দেখায়; না হলে "Next player X/O"।
+- handleclick ফাংশন: ক্লিক হলে স্কোয়ারের কপি তৈরি করে (slice()), যদি ইতিমধ্যে ভরা থাকে বা বিজয়ী থাকে তাহলে রিটার্ন করে। তারপর xIsNext অনুসারে X বা O বসায় এবং onPlay কল করে।
+- রেন্ডার: status দেখায়, তারপর তিনটি div-এ flex দিয়ে ৩x৩ গ্রিড তৈরি করে, প্রতিটিতে Square কম্পোনেন্ট কল করে।
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Game কম্পোনেন্ট (প্রধান কম্পোনেন্ট):
+
+এটি পুরো গেম ম্যানেজ করে।
+
+- স্টেট: history (অ্যারে অফ অ্যারে, প্রতিটি মুভের স্কোয়ার স্টেট রাখে, শুরুতে [Array(9).fill(null)]), xIsNext (true/false, শুরুতে true মানে X প্রথম), currentMove (বর্তমান মুভ ইন্ডেক্স, শুরুতে ০)।
+- currentSquares: history থেকে বর্তমান মুভের স্কোয়ার নেয়।
+- handlePlay ফাংশন: পরবর্তী স্কোয়ার পেয়ে xIsNext টগল করে, history আপডেট করে (পুরনো হিস্টরি স্লাইস করে নতুন যোগ করে), currentMove আপডেট করে।
+- jumpTo ফাংশন: নির্দিষ্ট মুভে যায়, currentMove সেট করে এবং xIsNext ক্যালকুলেট করে (মুভ যদি জোড় হয় তাহলে X)।
+- moves: history.map দিয়ে লিস্ট তৈরি করে, প্রতিটি মুভের জন্য বাটন যা jumpTo কল করে। ডেসক্রিপশন: মুভ ০ হলে "Go to start the game", অন্যথায় "Go to the move # [move]"।
+- রেন্ডার: flex দিয়ে বোর্ড এবং হিস্টরি লিস্ট পাশাপাশি দেখায়। Board-এ প্রপস পাস করে, হিস্টরি li-এ moves দেখায়।
+
+### calculateWinner ফাংশন:
+
+এটি বিজয়ী চেক করে।
+
+- lines: ৮টি সম্ভাব্য উইনিং কম্বিনেশনের অ্যারে (যেমন: [0,1,2] উপরের রো, [0,3,6] বাম কলাম ইত্যাদি)।
+- লুপ দিয়ে প্রতিটি লাইন চেক করে: যদি square[a] থাকে এবং square[a] == square[b] == square[c], তাহলে square[a] (X বা O) রিটার্ন করে। না হলে null রিটার্ন।
+
+এই কোডটি React-এর useState হুক ব্যবহার করে স্টেট ম্যানেজ করে এবং immutable way-এ ডেটা আপডেট করে (slice() দিয়ে কপি তৈরি করে)। গেমটি খেলতে গেলে X এবং O 交代 করে ক্লিক করুন, বিজয়ী হলে স্ট্যাটাস দেখাবে, এবং হিস্টরি থেকে পুরনো মুভে ফিরে যাওয়া যাবে।
